@@ -1,0 +1,6 @@
+renderTargetCameras[0-5] and mainCamera are ALL fully working now! Also, they are ALL FirstPersonCameras!
+
+To get the scene rendering from the perspective of a given camera:
+
+Call rebuildViewport(cameraName)
+Call updateScene(context, cameraName)

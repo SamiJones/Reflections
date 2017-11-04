@@ -1,0 +1,9 @@
+For (int i = 0; i < 6; i++)
+	Set scene camera to renderTargetCameras[i]
+	Set current render target to renderTarget[i]
+	Render scene to render target
+	
+Reset scene camera to default
+Reset render target to screen
+
+Render scene to screen, setting the sphere's cube map texture to the created cube map texture
