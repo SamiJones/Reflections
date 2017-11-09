@@ -1,23 +1,35 @@
-﻿Build started 04/11/2017 00:30:23.
-     1>Project "C:\Users\User\Documents\Advanced Real-Time Rendering\Coursework 1\DX11Proj.vcxproj" on node 2 (Build target(s)).
+﻿Build started 09/11/2017 20:20:20.
+     1>Project "C:\Users\User\Desktop\Coursework 1\DX11Proj.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _XM_NO_INTRINSICS_ /D __GU_DEBUG_MEMORY__ /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\DX11Proj.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Source\Scene.cpp
          Scene.cpp
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(377): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(462): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(497): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(688): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(689): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(758): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(768): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(768): warning C4244: 'argument' : conversion from 'gu_seconds' to 'float', possible loss of data
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(778): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\user\documents\advanced real-time rendering\coursework 1\source\scene.cpp(788): warning C4244: 'argument' : conversion from 'gu_seconds' to 'float', possible loss of data
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(381): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(401): warning C4305: '+=' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(404): warning C4305: '-=' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(407): warning C4305: '-=' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(410): warning C4305: '+=' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(413): warning C4305: '+=' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(416): warning C4305: '-=' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(466): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(501): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(755): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(756): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(760): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(761): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(826): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(836): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(836): warning C4244: 'argument' : conversion from 'gu_seconds' to 'float', possible loss of data
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(846): warning C4244: 'argument' : conversion from 'gu_seconds' to 'float', possible loss of data
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(851): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(856): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(863): warning C4244: 'argument' : conversion from 'gu_seconds' to 'float', possible loss of data
+     1>c:\users\user\desktop\coursework 1\source\scene.cpp(868): warning C4244: 'argument' : conversion from 'gu_seconds' to 'float', possible loss of data
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\User\Documents\Advanced Real-Time Rendering\Coursework 1\Debug\DX11Proj.exe" /INCREMENTAL /NOLOGO D3DCompiler.lib DirectXTK\bin\DirectXTK.lib DXGI.lib D3D11.lib CoreStructures\CoreStructures.lib CGImport3\CGImport3.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\User\Documents\Advanced Real-Time Rendering\Coursework 1\Debug\DX11Proj.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\User\Documents\Advanced Real-Time Rendering\Coursework 1\Debug\DX11Proj.lib" /MACHINE:X86 Debug\Animation.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\User\Desktop\Coursework 1\Debug\DX11Proj.exe" /INCREMENTAL /NOLOGO D3DCompiler.lib DirectXTK\bin\DirectXTK.lib DXGI.lib D3D11.lib CoreStructures\CoreStructures.lib CGImport3\CGImport3.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\User\Desktop\Coursework 1\Debug\DX11Proj.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\User\Desktop\Coursework 1\Debug\DX11Proj.lib" /MACHINE:X86 Debug\Animation.obj
          Debug\Box.obj
          Debug\Camera.obj
          Debug\DXBaseModel.obj
+         Debug\GPUParticles.obj
          Debug\Grid.obj
          Debug\Model.obj
          Debug\DXVertexParticle.obj
@@ -40,9 +52,9 @@
          Debug\Terrain.obj
          Debug\Texture.obj
          Debug\Triangle.obj
-         DX11Proj.vcxproj -> C:\Users\User\Documents\Advanced Real-Time Rendering\Coursework 1\Debug\DX11Proj.exe
-     1>Done Building Project "C:\Users\User\Documents\Advanced Real-Time Rendering\Coursework 1\DX11Proj.vcxproj" (Build target(s)).
+         DX11Proj.vcxproj -> C:\Users\User\Desktop\Coursework 1\Debug\DX11Proj.exe
+     1>Done Building Project "C:\Users\User\Desktop\Coursework 1\DX11Proj.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.57
+Time Elapsed 00:00:00.80

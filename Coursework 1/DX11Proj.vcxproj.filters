@@ -129,6 +129,9 @@
     <ClInclude Include="Source\Particles.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Source\GPUParticles.h">
+      <Filter>Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\stdafx.cpp">
@@ -209,6 +212,9 @@
     <ClCompile Include="Source\Particles.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="Source\GPUParticles.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\hlsl\basic_colour_ps.hlsl">
@@ -284,6 +290,12 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\hlsl\basic_texture_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\hlsl\fire_gs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\hlsl\reflection_map_gs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

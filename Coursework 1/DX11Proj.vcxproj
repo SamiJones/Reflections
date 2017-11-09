@@ -92,6 +92,7 @@
     <ClInclude Include="Source\Camera.h" />
     <ClInclude Include="Source\CBufferStructures.h" />
     <ClInclude Include="Source\DXBaseModel.h" />
+    <ClInclude Include="Source\GPUParticles.h" />
     <ClInclude Include="Source\Grid.h" />
     <ClInclude Include="Source\Model.h" />
     <ClInclude Include="Source\DXVertexParticle.h" />
@@ -122,6 +123,7 @@
     <ClCompile Include="Source\Box.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\DXBaseModel.cpp" />
+    <ClCompile Include="Source\GPUParticles.cpp" />
     <ClCompile Include="Source\Grid.cpp" />
     <ClCompile Include="Source\Model.cpp" />
     <ClCompile Include="Source\DXVertexParticle.cpp" />
@@ -178,6 +180,12 @@
     <FxCompile Include="Shaders\hlsl\emissive_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
     </FxCompile>
+    <FxCompile Include="Shaders\hlsl\fire_gs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="Shaders\hlsl\fire_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
     </FxCompile>
@@ -195,6 +203,12 @@
     </FxCompile>
     <FxCompile Include="Shaders\hlsl\ocean_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shaders\hlsl\reflection_map_gs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="Shaders\hlsl\reflection_map_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

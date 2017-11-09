@@ -12,16 +12,16 @@ using namespace DirectX::PackedVector;
 
 
 
+Particles::Particles(){}
 
 
 Particles::Particles(ID3D11Device *device, Effect *_effect, ID3D11ShaderResourceView *tex_view, Material *_material) {
-	
+
 	effect = _effect;
 	material = _material;
 	inputLayout = effect->getVSInputLayout();
-	
-	//diffuse = XMCOLOR(1.0f, 1.0f, 1.0f, 1.0f);	// BGRA
-	//spec = XMCOLOR(0.0f, 0.0f, 0.0f, 0.0f);// specular power = a * 1000.0
+
+
 	try
 	{
 
@@ -51,7 +51,7 @@ Particles::Particles(ID3D11Device *device, Effect *_effect, ID3D11ShaderResource
 
 		}
 
-	
+
 		// Setup particles vertex buffer
 
 
@@ -103,9 +103,9 @@ Particles::Particles(ID3D11Device *device, Effect *_effect, ID3D11ShaderResource
 		indexDesc.StructureByteStride = 0;
 		D3D11_SUBRESOURCE_DATA indexdata;
 		indexdata.pSysMem = indices;
-		
+
 		hr = device->CreateBuffer(&indexDesc, &indexdata, &indexBuffer);
-		
+
 		if (!SUCCEEDED(hr))
 			throw exception("Vertex buffer cannot be created");
 
@@ -130,7 +130,7 @@ Particles::Particles(ID3D11Device *device, Effect *_effect, ID3D11ShaderResource
 		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.MaxAnisotropy=16;
+		samplerDesc.MaxAnisotropy = 16;
 		samplerDesc.MinLOD = 0.0f;
 		samplerDesc.MaxLOD = 0.0f;
 		samplerDesc.MipLODBias = 0.0f;
@@ -138,7 +138,7 @@ Particles::Particles(ID3D11Device *device, Effect *_effect, ID3D11ShaderResource
 
 		hr = device->CreateSamplerState(&samplerDesc, &linearSampler);
 
-	
+
 
 
 	}
@@ -194,9 +194,10 @@ void Particles::render(ID3D11DeviceContext *context) {
 
 	effect->bindPipeline(context);
 
-	// set shaders for effect
+	// set shaders for effect (no longer required - set by effect)
 	context->VSSetShader(effect->getVertexShader(), 0, 0);
 	context->PSSetShader(effect->getPixelShader(), 0, 0);
+	context->GSSetShader(effect->getGeometryShader(), 0, 0); //added
 
 	// Set vertex layout
 	context->IASetInputLayout(effect->getVSInputLayout());
@@ -222,5 +223,6 @@ void Particles::render(ID3D11DeviceContext *context) {
 	// Draw particles object using index buffer
 	// indices for the particles.
 	context->DrawIndexed(N_P_IND, 0, 0);
+
 }
 

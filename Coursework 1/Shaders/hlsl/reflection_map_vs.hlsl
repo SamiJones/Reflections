@@ -12,12 +12,16 @@ cbuffer basicCBuffer : register(b0) {
 	float4x4			worldViewProjMatrix;
 	float4x4			worldITMatrix; // Correctly transform normals to world space
 	float4x4			worldMatrix;
+	float4x4			cameraViewMatrices[6];
 	float4				eyePos;
-
 	float4				lightVec; // w=1: Vec represents position, w=0: Vec  represents direction.
 	float4				lightAmbient;
 	float4				lightDiffuse;
 	float4				lightSpecular;
+	float4				light2Vec; // w=1: Vec represents position, w=0: Vec  represents direction.
+	float4				light2Ambient;
+	float4				light2Diffuse;
+	float4				light2Specular;
 	float4				windDir;
 	float				Timer;
 	float				grassHeight;

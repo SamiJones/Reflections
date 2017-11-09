@@ -23,6 +23,7 @@
 #include <Effect.h>
 #include <Texture.h>
 #include <VertexStructures.h>
+#include <GPUParticles.h>
 
 using namespace std;
 using namespace DirectX;
@@ -259,8 +260,8 @@ Scene::~Scene() {
 	if (cBufferKnight)
 		cBufferKnight->Release();
 
-	if (cBufferTerrain)
-		cBufferTerrain->Release();
+	if(cBufferWalls)
+		cBufferWalls->Release();
 
 	if (cBufferSkyBox)
 		cBufferSkyBox->Release();
@@ -273,6 +274,9 @@ Scene::~Scene() {
 
 	if (towerA)
 		towerA->release();
+
+	if (walls)
+		walls->release();
 
 	if (knight)
 		knight->release();
@@ -394,22 +398,22 @@ void Scene::handleKeyDown(const WPARAM keyCode, const LPARAM extKeyFlags) {
 	}
 	//move reflective sphere up (+y)
 	else if (keyCode == 0x57) //0x57 = "W"
-		y += 0.5;
+		y += 0.3;
 	//move reflective sphere left (-x)
 	else if (keyCode == 0x41) //0x41 = "A"
-		x -= 0.5;
+		x -= 0.3;
 	//move reflective sphere down (-y)
 	else if (keyCode == 0x53) //0x53 = "S"
-		y -= 0.5;
+		y -= 0.3;
 	//move reflective sphere right (+x)
 	else if (keyCode == 0x44) //0x44 = "D"
-		x += 0.5;
+		x += 0.3;
 	//move reflective sphere forwards (+z)
 	else if (keyCode == 0x51) //0x51 = "Q"
-		z += 0.5;
-	//move reflective sphere backwards (+z)
+		z += 0.3;
+	//move reflective sphere backwards (-z)
 	else if (keyCode == 0x45) //0x45 = "E"
-		z -= 0.5;
+		z -= 0.3;
 
 	//combine the new translation matrix with the current sphereTranslationMatrix
 	sphereTranslationMatrix *= XMMatrixTranslation(x, y, z);
@@ -550,7 +554,6 @@ HRESULT Scene::initialiseSceneResources() {
 	// Bind the render target view and depth/stencil view to the pipeline
 	// and sets up viewport for the main window (wndHandle) 
 
-
 	// Create main camera
 	mainCamera = new FirstPersonCamera();
 	mainCamera->setPos(XMVectorSet(25, 2, -14.5, 1));
@@ -625,6 +628,18 @@ HRESULT Scene::initialiseSceneResources() {
 
 		hr = device->CreateRenderTargetView(renderTargetTexture, &rtvDesc, &mDynamicCubeMapRTV[i]);
 	}
+ 
+	// Create the 6-face render target view
+	// Used to create RTV for attempted geometry shader optimisation of cube map creation
+	D3D11_RENDER_TARGET_VIEW_DESC DescRT;
+	DescRT.Format = texDesc.Format;
+	DescRT.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+	DescRT.Texture2DArray.FirstArraySlice = 0;
+	DescRT.Texture2DArray.ArraySize = 6;
+	DescRT.Texture2DArray.MipSlice = 0;
+
+	hr = device->CreateRenderTargetView(renderTargetTexture, &DescRT, &mDynamicCubeMapRTV_SinglePass);
+	//
 
 	//Create shader resource view
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -654,12 +669,26 @@ HRESULT Scene::initialiseSceneResources() {
 	ID3D11Texture2D* depthTex = 0;
 	hr = device->CreateTexture2D(&depthTexDesc, 0, &depthTex);
 	// Create the depth stencil view for the entire buffer.
+	
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Format = depthTexDesc.Format;
 	dsvDesc.Flags = 0;
 	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Texture2D.MipSlice = 0;
 	hr = device->CreateDepthStencilView(depthTex, &dsvDesc, &mDynamicCubeMapDSV);
+
+	// Create the depth stencil view for the entire cube
+	// Used to create DSV for attempted geometry shader optimisation of cube map creation
+	D3D11_DEPTH_STENCIL_VIEW_DESC DescDS;
+	DescDS.Format = depthTexDesc.Format;
+	DescDS.Flags = 0;
+	DescDS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+	DescDS.Texture2DArray.FirstArraySlice = 0;
+	DescDS.Texture2DArray.ArraySize = 1;
+	DescDS.Texture2DArray.MipSlice = 0;
+
+	hr = device->CreateDepthStencilView(depthTex, &DescDS, &mDynamicCubeMapDSV_SinglePass);
+	//
 
 	//set up viewport
 	renderTargetViewport.TopLeftX = 0.0f;
@@ -673,10 +702,43 @@ HRESULT Scene::initialiseSceneResources() {
 
 	perPixelLightingEffect = new Effect(device, "Shaders\\cso\\per_pixel_lighting_vs.cso", "Shaders\\cso\\per_pixel_lighting_ps.cso", extVertexDesc, ARRAYSIZE(extVertexDesc));
 	skyBoxEffect = new Effect(device, "Shaders\\cso\\sky_box_vs.cso", "Shaders\\cso\\sky_box_ps.cso", extVertexDesc, ARRAYSIZE(extVertexDesc));
-	//basicEffect = new Effect(device, "Shaders\\cso\\basic_colour_vs.cso", "Shaders\\cso\\basic_colour_ps.cso", "Shaders\\cso\\basic_colour_gs.cso", basicVertexDesc, ARRAYSIZE(basicVertexDesc));
 	basicEffect = new Effect(device, "Shaders\\cso\\basic_texture_vs.cso", "Shaders\\cso\\basic_texture_ps.cso", basicVertexDesc, ARRAYSIZE(basicVertexDesc));
+	fireEffect = new Effect(device, "Shaders\\cso\\fire_vs.cso", "Shaders\\cso\\fire_ps.cso", "Shaders\\cso\\fire_gs.cso", particleVertexDesc, ARRAYSIZE(particleVertexDesc));
+
+	//Used for standard implementation of reflection
 	refMapEffect = new Effect(device, "Shaders\\cso\\reflection_map_vs.cso", "Shaders\\cso\\reflection_map_ps.cso", extVertexDesc, ARRAYSIZE(extVertexDesc));
-	terrainEffect = new Effect(device, "Shaders\\cso\\grass_vs.cso", "Shaders\\cso\\grass_ps.cso", extVertexDesc, ARRAYSIZE(extVertexDesc));
+
+	//Used for attempted optimisation of reflection cube map creation using geometry shader.
+	//Not currently used.
+	//refMapEffect = new Effect(device, "Shaders\\cso\\reflection_map_vs.cso", "Shaders\\cso\\reflection_map_ps.cso", "Shaders\\cso\\reflection_map_gs.cso", extVertexDesc, ARRAYSIZE(extVertexDesc));
+
+	// get current blendState and blend description of particleEffect (alpha blending off by default)
+	ID3D11BlendState *partBS = fireEffect->getBlendState();
+	D3D11_BLEND_DESC partBD;
+	partBS->GetDesc(&partBD);
+
+	// Modify blend description - alpha blending on
+	partBD.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	partBD.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	partBD.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	partBD.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+	partBD.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	partBD.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+	// Create new blendState
+	partBS->Release(); device->CreateBlendState(&partBD, &partBS);
+	fireEffect->setBlendState(partBS);
+
+	// get current depthStencil State and depthStencil description of particleEffect (depth read and write by default)
+	ID3D11DepthStencilState *partDSS = fireEffect->getDepthStencilState();
+	D3D11_DEPTH_STENCIL_DESC partDSD;
+	partDSS->GetDesc(&partDSD);
+
+	//Disable Depth Writing for particles
+	partDSD.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	// Create custom fire depth-stencil state object
+	partDSS->Release(); device->CreateDepthStencilState(&partDSD, &partDSS);
+	fireEffect->setDepthStencilState(partDSS);
 
 	// Setup CBuffer
 	cBufferExtSrc = (CBufferExt*)_aligned_malloc(sizeof(CBufferExt), 16);
@@ -684,13 +746,22 @@ HRESULT Scene::initialiseSceneResources() {
 	cBufferExtSrc->worldMatrix = XMMatrixIdentity();
 	cBufferExtSrc->worldITMatrix = XMMatrixIdentity();
 	cBufferExtSrc->WVPMatrix = mainCamera->getViewMatrix()*mainCamera->getProjMatrix();
-	cBufferExtSrc->lightVec = XMFLOAT4(-250.0, 130.0, 145.0, 1.0); // Positional light
+
+	//Used in geometry shader cube map optimisation to set camera view matrices in reflection_map shader cbuffers
+	for (int i = 0; i < 6; i++)
+		cBufferExtSrc->cameraViewMatrices[i] = renderTargetCameras[i]->getViewMatrix();
+
+	cBufferExtSrc->lightVec = XMFLOAT4(250.0, -130.0, -145.0, 0.0); // Directional light
 	cBufferExtSrc->lightAmbient = XMFLOAT4(0.3, 0.3, 0.3, 1.0);
 	cBufferExtSrc->lightDiffuse = XMFLOAT4(0.8, 0.8, 0.8, 1.0);
 	cBufferExtSrc->lightSpecular = XMFLOAT4(1.0, 1.0, 1.0, 1.0);
 
-	XMStoreFloat4(&cBufferExtSrc->eyePos, mainCamera->getPos());
+	XMStoreFloat4(&cBufferExtSrc->light2Vec, originalLight2Vec); // Positional light
+	cBufferExtSrc->light2Ambient = XMFLOAT4(0.1, 0.1, 0.1, 1.0);
+	cBufferExtSrc->light2Diffuse = XMFLOAT4(0.1, 0.1, 0.4, 1.0);
+	cBufferExtSrc->light2Specular = XMFLOAT4(1.0, 1.0, 1.0, 1.0);
 
+	XMStoreFloat4(&cBufferExtSrc->eyePos, mainCamera->getPos());
 
 	D3D11_BUFFER_DESC cbufferDesc;
 	D3D11_SUBRESOURCE_DATA cbufferInitData;
@@ -702,14 +773,15 @@ HRESULT Scene::initialiseSceneResources() {
 	cbufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	cbufferInitData.pSysMem = cBufferExtSrc;
 
-
 	//Create cBuffers
 	hr = device->CreateBuffer(&cbufferDesc, &cbufferInitData, &cBufferBridge);
 	hr = device->CreateBuffer(&cbufferDesc, &cbufferInitData, &cBufferTowerA);
 	hr = device->CreateBuffer(&cbufferDesc, &cbufferInitData, &cBufferKnight);
 	hr = device->CreateBuffer(&cbufferDesc, &cbufferInitData, &cBufferSkyBox);
 	hr = device->CreateBuffer(&cbufferDesc, &cbufferInitData, &cBufferSphere);
-	hr = device->CreateBuffer(&cbufferDesc, &cbufferInitData, &cBufferTerrain);
+	hr = device->CreateBuffer(&cbufferDesc, &cbufferInitData, &cBufferStand);
+	hr = device->CreateBuffer(&cbufferDesc, &cbufferInitData, &cBufferWalls);
+	hr = device->CreateBuffer(&cbufferDesc, &cbufferInitData, &cBufferFire);
 
 	// Setup example objects
 
@@ -722,23 +794,19 @@ HRESULT Scene::initialiseSceneResources() {
 	envMapTexture = new Texture(device, L"Resources\\Textures\\grassenvmap1024.dds");
 	rustDiffTexture = new Texture(device, L"Resources\\Textures\\rustDiff2.jpg");
 	rustSpecTexture = new Texture(device, L"Resources\\Textures\\rustSpec2.jpg");
-
-	terrainTexture = new Texture(device, L"Resources\\Textures\\grass.png");
-	terrainHeightTexture = new Texture(device, L"Resources\\Textures\\heightmap.bmp");
-	terrainNormalTexture = new Texture(device, L"Resources\\Textures\\normalmap.bmp");
+	fireTexture = new Texture(device, L"Resources\\Textures\\Fire.jpg");
 
 	ID3D11ShaderResourceView *sphereTextureArray[] = { rustDiffTexture->SRV, mDynamicCubeMapSRV, rustSpecTexture->SRV };
 
 	//load bridge
-	bridge = new Model(device, perPixelLightingEffect, wstring(L"Resources\\Models\\bridge.3ds"), brickTexture->SRV, &mattWhite);
+	bridge = new Model(device, perPixelLightingEffect, wstring(L"Resources\\Models\\bridge.3ds"), mossWallTexture->SRV, &mattWhite);
 	towerA = new Model(device, perPixelLightingEffect, wstring(L"Resources\\Models\\tower.3ds"), mossWallTexture->SRV, &mattWhite);
 	knight = new Model(device, perPixelLightingEffect, wstring(L"Resources\\Models\\knight.3ds"), knightTexture->SRV, &mattWhite);
 	sphere = new Model(device, refMapEffect, wstring(L"Resources\\Models\\sphere.3ds"), sphereTextureArray, 3, &glossWhite);
+	stand = new Model(device, perPixelLightingEffect, wstring(L"Resources\\Models\\stand.3ds"), mossWallTexture->SRV, &mattWhite);
 	box = new Box(device, skyBoxEffect, envMapTexture->SRV);
-	terrain = new Terrain(100, 100, context, device, terrainEffect, terrainTexture->SRV, &mattWhite, terrainHeightTexture->texture, terrainNormalTexture->texture);
-
-	triangle = new Quad(device, basicEffect->getVSInputLayout());
-
+	walls = new Model(device, perPixelLightingEffect, wstring(L"Resources\\Models\\Castle walls.3ds"), mossWallTexture->SRV, &mattWhite);
+	fire = new GPUParticles(device, fireEffect, fireTexture->SRV, &mattWhite);
 
 	return S_OK;
 }
@@ -755,7 +823,7 @@ HRESULT Scene::updateScene(ID3D11DeviceContext *context, FirstPersonCamera* came
 
 	// Update bridge cBuffer
 	// Scale and translate bridge world matrix
-	cBufferExtSrc->worldMatrix = XMMatrixScaling(0.05, 0.05, 0.05)*XMMatrixTranslation(0, -2.7, -10);
+	cBufferExtSrc->worldMatrix = XMMatrixScaling(0.05, 0.05, 0.05)*XMMatrixTranslation(0, -2.7, -15);
 	cBufferExtSrc->worldITMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cBufferExtSrc->worldMatrix));
 	cBufferExtSrc->WVPMatrix = cBufferExtSrc->worldMatrix*camera->getViewMatrix()*camera->getProjMatrix();
 	mapCbuffer(cBufferExtSrc, cBufferBridge);
@@ -770,16 +838,6 @@ HRESULT Scene::updateScene(ID3D11DeviceContext *context, FirstPersonCamera* came
 	cBufferExtSrc->WVPMatrix = cBufferExtSrc->worldMatrix*camera->getViewMatrix()*camera->getProjMatrix();
 	mapCbuffer(cBufferExtSrc, cBufferKnight);
 
-	/*cBufferExtSrc->worldMatrix = XMMatrixScaling(0.05, 0.05, 0.05)*XMMatrixTranslation(0, 0, -10);
-	cBufferExtSrc->worldITMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cBufferExtSrc->worldMatrix));
-	cBufferExtSrc->WVPMatrix = cBufferExtSrc->worldMatrix*camera->getViewMatrix()*camera->getProjMatrix();
-	mapCbuffer(cBufferExtSrc, cBufferWater);*/
-
-	cBufferExtSrc->worldMatrix = XMMatrixScaling(1, 1, 1)*XMMatrixTranslation(4.5, -1.2, 4);
-	cBufferExtSrc->worldITMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cBufferExtSrc->worldMatrix));
-	cBufferExtSrc->WVPMatrix = cBufferExtSrc->worldMatrix*camera->getViewMatrix()*camera->getProjMatrix();
-	mapCbuffer(cBufferExtSrc, cBufferTerrain);
-
 	cBufferExtSrc->worldMatrix = XMMatrixScaling(100.0, 100, 100)*XMMatrixTranslation(0, 0, 0);
 	cBufferExtSrc->worldITMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cBufferExtSrc->worldMatrix));
 	cBufferExtSrc->WVPMatrix = cBufferExtSrc->worldMatrix*camera->getViewMatrix()*camera->getProjMatrix();
@@ -789,6 +847,26 @@ HRESULT Scene::updateScene(ID3D11DeviceContext *context, FirstPersonCamera* came
 	cBufferExtSrc->worldITMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cBufferExtSrc->worldMatrix));
 	cBufferExtSrc->WVPMatrix = cBufferExtSrc->worldMatrix*camera->getViewMatrix()*camera->getProjMatrix();
 	mapCbuffer(cBufferExtSrc, cBufferSphere);
+
+	cBufferExtSrc->worldMatrix = XMMatrixScaling(0.05, 0.05, 0.05)*XMMatrixTranslation(0, -3, 0);
+	cBufferExtSrc->worldITMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cBufferExtSrc->worldMatrix));
+	cBufferExtSrc->WVPMatrix = cBufferExtSrc->worldMatrix*camera->getViewMatrix()*camera->getProjMatrix();
+	mapCbuffer(cBufferExtSrc, cBufferStand);
+
+	cBufferExtSrc->worldMatrix = XMMatrixScaling(0.02, 0.02, 0.02)*XMMatrixTranslation(0, -3, -6);
+	cBufferExtSrc->worldITMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cBufferExtSrc->worldMatrix));
+	cBufferExtSrc->WVPMatrix = cBufferExtSrc->worldMatrix*camera->getViewMatrix()*camera->getProjMatrix();
+	mapCbuffer(cBufferExtSrc, cBufferWalls);
+
+	cBufferExtSrc->Timer = cBufferExtSrc->Timer * 3;// speed up particles
+	// Scale and translate fire world matrix
+	cBufferExtSrc->worldMatrix = XMMatrixScaling(1, 1, 1) * XMMatrixTranslation(-2.5, 1.0, 2.0) * XMMatrixRotationY(tDelta * 0.5) * sphereTranslationMatrix;
+	cBufferExtSrc->worldITMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cBufferExtSrc->worldMatrix));
+	cBufferExtSrc->WVPMatrix = cBufferExtSrc->worldMatrix * camera->getViewMatrix() * camera->getProjMatrix();
+	mapCbuffer(cBufferExtSrc, cBufferFire);
+
+	XMVECTOR newLight2Vec = XMVector3Transform(originalLight2Vec, XMMatrixRotationY(tDelta * 0.5) * sphereTranslationMatrix);
+	XMStoreFloat4(&cBufferExtSrc->light2Vec, newLight2Vec);
 
 	return S_OK;
 }
@@ -812,7 +890,7 @@ HRESULT Scene::mapCbuffer(void *cBufferExtSrcL, ID3D11Buffer *cBufferExtL)
 HRESULT Scene::renderScene() {
 
 	ID3D11DeviceContext *context = dx->getDeviceContext();
-	
+
 	// Validate window and D3D context
 	if (isMinimised() || !context)
 		return E_FAIL;
@@ -841,6 +919,19 @@ HRESULT Scene::renderScene() {
 		context->OMSetRenderTargets(1, renderTargets, mDynamicCubeMapDSV);
 
 		renderObjects(context);
+
+		if (fire) {
+			fireEffect->bindPipeline(context);
+
+			// Apply the particles cBuffer.
+			context->VSSetConstantBuffers(0, 1, &cBufferFire);
+			context->GSSetConstantBuffers(0, 1, &cBufferFire);
+			context->PSSetConstantBuffers(0, 1, &cBufferFire);
+			// Render
+			fire->render(context);
+
+			context->GSSetShader(NULL, 0, 0);
+		}
 	}
 
 	// Restore default render targets
@@ -865,13 +956,118 @@ HRESULT Scene::renderScene() {
 		sphere->render(context);
 	}
 
+	//fire must be rendered after sphere, otherwise sphere covers it when fire passes in front of the sphere
+	if (fire) {
+		fireEffect->bindPipeline(context);
+
+		// Apply the particles cBuffer.
+		context->VSSetConstantBuffers(0, 1, &cBufferFire);
+		context->GSSetConstantBuffers(0, 1, &cBufferFire);
+		context->PSSetConstantBuffers(0, 1, &cBufferFire);
+		// Render
+		fire->render(context);
+
+		context->GSSetShader(NULL, 0, 0);
+	}
+
 	// Present current frame to the screen
 	HRESULT hr = dx->presentBackBuffer();
 
 	return S_OK;
 }
 
-//calls to render functions of objects have been moved from renderScene() to this function, to make the renderScene() code more readable
+// Render scene using geometry shader optimisation of the cube map creation (cube map is created in single pass).
+// Not working, but does compile and render the sphere.
+HRESULT Scene::renderSceneWithCubeMapGS() {
+
+	ID3D11DeviceContext *context = dx->getDeviceContext();
+
+	// Validate window and D3D context
+	if (isMinimised() || !context)
+		return E_FAIL;
+
+	// Clear the screen
+	static const FLOAT clearColor[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+
+	// Save current render targets
+	ID3D11RenderTargetView* renderTargets[1];
+	ID3D11RenderTargetView* defaultRenderTargetView;
+	ID3D11DepthStencilView* defaultDepthStencilView;
+	context->OMGetRenderTargets(1, &defaultRenderTargetView, &defaultDepthStencilView);
+
+	//
+	//Render to cube map render target in single pass
+	//
+	rebuildViewport(mainCamera);
+	updateScene(context, mainCamera);
+
+	// Clear new render target and original depth stencil
+	float clearColor2[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	context->ClearRenderTargetView(mDynamicCubeMapRTV_SinglePass, clearColor2);
+	context->ClearDepthStencilView(mDynamicCubeMapDSV_SinglePass, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	ID3D11RenderTargetView* aRTViews[1] = { mDynamicCubeMapRTV_SinglePass };
+	context->OMSetRenderTargets(sizeof(aRTViews) / sizeof(aRTViews[0]), aRTViews, mDynamicCubeMapDSV_SinglePass);
+
+	renderObjects(context);
+
+	//fire must be rendered after sphere, otherwise sphere covers it when fire passes in front of the sphere
+	if (fire) {
+		fireEffect->bindPipeline(context);
+
+		// Apply the particles cBuffer.
+		context->VSSetConstantBuffers(0, 1, &cBufferFire);
+		context->GSSetConstantBuffers(0, 1, &cBufferFire);
+		context->PSSetConstantBuffers(0, 1, &cBufferFire);
+		// Render
+		fire->render(context);
+
+		context->GSSetShader(NULL, 0, 0);
+	}
+
+	//
+	//Render scene to default render target
+	//
+	renderTargets[0] = renderTargetRTV;
+	context->OMSetRenderTargets(1, &defaultRenderTargetView, defaultDepthStencilView);
+
+	rebuildViewport(mainCamera);
+	updateScene(context, mainCamera);
+
+	context->ClearRenderTargetView(defaultRenderTargetView, clearColor2);
+	context->ClearDepthStencilView(defaultDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	renderObjects(context);
+
+	if (sphere) {
+		// Apply the sphere cBuffer.
+		context->VSSetConstantBuffers(0, 1, &cBufferSphere);
+		context->PSSetConstantBuffers(0, 1, &cBufferSphere);
+		// Render
+		sphere->render(context);
+	}
+
+	//fire must be rendered after sphere, otherwise sphere covers it when fire passes in front of the sphere
+	if (fire) {
+		fireEffect->bindPipeline(context);
+
+		// Apply the particles cBuffer.
+		context->VSSetConstantBuffers(0, 1, &cBufferFire);
+		context->GSSetConstantBuffers(0, 1, &cBufferFire);
+		context->PSSetConstantBuffers(0, 1, &cBufferFire);
+		// Render
+		fire->render(context);
+
+		context->GSSetShader(NULL, 0, 0);
+	}
+
+	// Present current frame to the screen
+	HRESULT hr = dx->presentBackBuffer();
+
+	return S_OK;
+}
+
+//calls to render objects have been moved from renderScene() to this function, to make the renderScene() code more readable
 HRESULT Scene::renderObjects(ID3D11DeviceContext* context)
 {
 	if (bridge) {
@@ -908,21 +1104,21 @@ HRESULT Scene::renderObjects(ID3D11DeviceContext* context)
 		box->render(context);
 	}
 
-	//Draw the grass
-	if (terrain) {
-		context->VSSetConstantBuffers(0, 1, &cBufferTerrain);
-		context->PSSetConstantBuffers(0, 1, &cBufferTerrain);
+	if (walls)
+	{
+		context->VSSetConstantBuffers(0, 1, &cBufferWalls);
+		context->PSSetConstantBuffers(0, 1, &cBufferWalls);
 
-		terrain->render(context);
+		walls->render(context);
 	}
 
-	//if (sphere) {
-	//	// Apply the sphere cBuffer.
-	//	context->VSSetConstantBuffers(0, 1, &cBufferSphere);
-	//	context->PSSetConstantBuffers(0, 1, &cBufferSphere);
-	//	// Render
-	//	sphere->render(context);
-	//}
+	if (stand)
+	{
+		context->VSSetConstantBuffers(0, 1, &cBufferStand);
+		context->PSSetConstantBuffers(0, 1, &cBufferStand);
+
+		stand->render(context);
+	}
 
 	return S_OK;
 }

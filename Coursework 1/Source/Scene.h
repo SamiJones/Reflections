@@ -7,8 +7,8 @@
 #include <GUObject.h>
 #include <Windows.h>
 #include <Box.h>
-#include <Terrain.h>
 #include <Triangle.h>
+#include <Particles.h>
 #include <Quad.h>
 
 #include <CBufferStructures.h>
@@ -51,8 +51,7 @@ class Scene : public GUObject {
 	Effect									*skyBoxEffect;
 	Effect									*basicEffect;
 	Effect									*refMapEffect;
-	Effect									*terrainEffect;
-	Effect									*treeEffect;
+	Effect									*fireEffect;
 	
 	ID3D11Buffer							*cBufferSkyBox = nullptr;
 	ID3D11Buffer							*cBufferBridge = nullptr;
@@ -60,7 +59,9 @@ class Scene : public GUObject {
 	ID3D11Buffer							*cBufferKnight = nullptr;
 	ID3D11Buffer							*cBufferTree = nullptr;
 	ID3D11Buffer							*cBufferSphere = nullptr;
-	ID3D11Buffer							*cBufferTerrain = nullptr;
+	ID3D11Buffer							*cBufferStand = nullptr;
+	ID3D11Buffer							*cBufferWalls = nullptr;
+	ID3D11Buffer							*cBufferFire = nullptr;
 
 	CBufferExt								*cBufferExtSrc = nullptr;
 
@@ -70,21 +71,17 @@ class Scene : public GUObject {
 	Texture									*rustSpecTexture = nullptr;
 	Texture									*envMapTexture = nullptr;
 	Texture									*knightTexture = nullptr;
-	Texture									*treeTexture = nullptr;
-
-	Texture									*terrainTexture = nullptr;
-	Texture									*terrainHeightTexture = nullptr;
-	Texture									*terrainNormalTexture = nullptr;
-
-	Texture									*cubeMapTexture = nullptr;
+	Texture									*fireTexture = nullptr;
 
 	// Tutorial 04
-	ID3D11RenderTargetView* renderTargetRTV;
-	ID3D11ShaderResourceView* mDynamicCubeMapSRV;
-	ID3D11RenderTargetView* mDynamicCubeMapRTV[6];
+	ID3D11ShaderResourceView*				mDynamicCubeMapSRV;
+	ID3D11RenderTargetView*					renderTargetRTV;
+	ID3D11RenderTargetView*					mDynamicCubeMapRTV[6];
+	ID3D11DepthStencilView*					mDynamicCubeMapDSV;
 
-	//DepthStencilViews
-	ID3D11DepthStencilView					*mDynamicCubeMapDSV;
+	//used for the (attempted) efficient creation of cube map using the geometry shader in a single pass
+	ID3D11RenderTargetView*					mDynamicCubeMapRTV_SinglePass;
+	ID3D11DepthStencilView*					mDynamicCubeMapDSV_SinglePass;
 	
 	//Models
 	Model									*bridge = nullptr;
@@ -92,8 +89,10 @@ class Scene : public GUObject {
 	Model									*knight = nullptr;
 	Box										*box = nullptr;
 	Model									*sphere = nullptr;
+	Model									*stand = nullptr;
 	Quad									*triangle = nullptr;
-	Terrain									*terrain = nullptr;
+	Model									*walls = nullptr;
+	Particles								*fire = nullptr;
 	// Main FPS clock
 	CGDClock								*mainClock = nullptr;
 
@@ -103,9 +102,14 @@ class Scene : public GUObject {
 	//Cameras used for rendering to 6 render targets for the dynamic reflection
 	FirstPersonCamera						*renderTargetCameras[6]; 
 
+	//the size of each face of the cube map texture - a low resolution such as 256 x 256 saves processing
 	const int								CUBEMAP_SIZE = 256;
 
+	//used for applying a user-defined translation to the reflective sphere in updateScene()
 	DirectX::XMMATRIX						sphereTranslationMatrix = XMMatrixIdentity();
+	
+	//initial position of the second light in the scene (coming from the fire)
+	DirectX::XMVECTOR						originalLight2Vec = DirectX::XMVectorSet(-2.5, 0.0, 2.0, 1.0);
 
 	//
 	// Private interface
@@ -178,6 +182,7 @@ public:
 	HRESULT initialiseSceneResources();
 	HRESULT updateScene(ID3D11DeviceContext *context, FirstPersonCamera* camera); //updates cbuffers using the view and projection matrices of the specified camera
 	HRESULT renderScene();
+	HRESULT renderSceneWithCubeMapGS();
 	HRESULT renderObjects(ID3D11DeviceContext* context);
 
 	void DrawScene(ID3D11DeviceContext *context);

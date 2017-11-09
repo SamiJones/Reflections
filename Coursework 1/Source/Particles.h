@@ -10,13 +10,11 @@ class Texture;
 class Material;
 class Effect;
 
-//class DXBlob;
 
 
 class Particles : public GUObject {
-	//DirectX::PackedVector::XMCOLOR		diffuse;
-	//DirectX::PackedVector::XMCOLOR		spec;	
 
+protected:
 
 	Material *material = nullptr;
 	Effect *effect = nullptr;
@@ -36,7 +34,7 @@ class Particles : public GUObject {
 	ID3D11SamplerState				*linearSampler = nullptr;
 
 public:
-
+	Particles();
 	Particles(ID3D11Device *device, Effect *_effect, ID3D11ShaderResourceView *tex_view, Material *_material);
 	~Particles();
 	void setTexture(ID3D11ShaderResourceView *tex_view);
