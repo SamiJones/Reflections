@@ -98,27 +98,27 @@ FragmentOutputPacket main(FragmentInputPacket v) {
 		lightDir =lightVec.xyz - v.posW; // Positional light
 	lightDir=normalize(lightDir);
 
-	float3 light2Dir = -light2Vec.xyz; // Directional light
-		if (light2Vec.w == 1.0)
-			light2Dir = light2Vec.xyz - v.posW; // Positional light
-	light2Dir = normalize(light2Dir);
+	//float3 light2Dir = -light2Vec.xyz; // Directional light
+	//	if (light2Vec.w == 1.0)
+	//		light2Dir = light2Vec.xyz - v.posW; // Positional light
+	//light2Dir = normalize(light2Dir);
 
 	// Add diffuse lights if relevant (otherwise we end up just returning the ambient light colour)
 	colour += max(dot(lightDir, N), 0.0f) *  baseColour.xyz * lightDiffuse;
-	colour += max(dot(light2Dir, N), 0.0f) * baseColour.xyz * light2Diffuse;
+	//colour += max(dot(light2Dir, N), 0.0f) * baseColour.xyz * light2Diffuse;
 
 	// Calc specular light
 	float specPower = max(v.matSpecular.a*1000.0, 1.0f);
 	float3 eyeDir = normalize(eyePos - v.posW);
 	
 	float3 R = reflect(-lightDir, N);
-	float3 R2 = reflect(-light2Dir, N);
+	//float3 R2 = reflect(-light2Dir, N);
 
 	float specFactor = pow(max(dot(R, eyeDir), 0.0f), specPower);
-	float specFactor2 = pow(max(dot(R2, eyeDir), 0.0f), specPower);
+	//float specFactor2 = pow(max(dot(R2, eyeDir), 0.0f), specPower);
 
 	colour += specFactor  * v.matSpecular.xyz * lightSpecular;
-	colour += specFactor2 * v.matSpecular.xyz * light2Specular;
+	//colour += specFactor2 * v.matSpecular.xyz * light2Specular;
 
 	outputFragment.fragmentColour = float4(colour, baseColour.a);
 	return outputFragment;

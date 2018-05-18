@@ -920,18 +920,18 @@ HRESULT Scene::renderScene() {
 
 		renderObjects(context);
 
-		if (fire) {
-			fireEffect->bindPipeline(context);
+		//if (fire) {
+		//	fireEffect->bindPipeline(context);
 
-			// Apply the particles cBuffer.
-			context->VSSetConstantBuffers(0, 1, &cBufferFire);
-			context->GSSetConstantBuffers(0, 1, &cBufferFire);
-			context->PSSetConstantBuffers(0, 1, &cBufferFire);
-			// Render
-			fire->render(context);
+		//	// Apply the particles cBuffer.
+		//	context->VSSetConstantBuffers(0, 1, &cBufferFire);
+		//	context->GSSetConstantBuffers(0, 1, &cBufferFire);
+		//	context->PSSetConstantBuffers(0, 1, &cBufferFire);
+		//	// Render
+		//	fire->render(context);
 
-			context->GSSetShader(NULL, 0, 0);
-		}
+		//	context->GSSetShader(NULL, 0, 0);
+		//}
 	}
 
 	// Restore default render targets
@@ -957,18 +957,18 @@ HRESULT Scene::renderScene() {
 	}
 
 	//fire must be rendered after sphere, otherwise sphere covers it when fire passes in front of the sphere
-	if (fire) {
-		fireEffect->bindPipeline(context);
+	//if (fire) {
+	//	fireEffect->bindPipeline(context);
 
-		// Apply the particles cBuffer.
-		context->VSSetConstantBuffers(0, 1, &cBufferFire);
-		context->GSSetConstantBuffers(0, 1, &cBufferFire);
-		context->PSSetConstantBuffers(0, 1, &cBufferFire);
-		// Render
-		fire->render(context);
+	//	// Apply the particles cBuffer.
+	//	context->VSSetConstantBuffers(0, 1, &cBufferFire);
+	//	context->GSSetConstantBuffers(0, 1, &cBufferFire);
+	//	context->PSSetConstantBuffers(0, 1, &cBufferFire);
+	//	// Render
+	//	fire->render(context);
 
-		context->GSSetShader(NULL, 0, 0);
-	}
+	//	context->GSSetShader(NULL, 0, 0);
+	//}
 
 	// Present current frame to the screen
 	HRESULT hr = dx->presentBackBuffer();
